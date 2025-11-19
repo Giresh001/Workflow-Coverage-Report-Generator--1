@@ -1,0 +1,140 @@
+name: Workflow Coverage Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 11 * * *'
+
+jobs:
+  wf-coverage:
+    runs-on: self-hosted
+
+    env:
+      HOST1: ${{ secrets.WF_HOST1 }}
+      HOST2: ${{ secrets.WF_HOST2 }}
+      FILE_PREFIX: WorkflowsCoverageRecords
+      START_DATE: '2025-09-01'
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Verify Maven and Java installed
+        run: |
+          mvn -version
+          java -version
+        shell: pwsh
+
+      - name: Create local logs folder
+        run: |
+          mkdir "workflow json logs"
+        shell: pwsh
+
+      - name: Map network shares
+        run: |
+          net use "\\${env:HOST1}\c$" /user:${{ secrets.WF_HOST_USER }} ${{ secrets.WF_HOST_PASSWORD }} /persistent:no
+          net use "\\${env:HOST2}\c$" /user:${{ secrets.WF_HOST_USER }} ${{ secrets.WF_HOST_PASSWORD }} /persistent:no
+        shell: pwsh
+
+      - name: Copy JSON logs from both machines (name + fixed date range)
+        run: |
+          $dest = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
+          $start = [datetime]::Parse($env:START_DATE)
+          $end   = Get-Date
+
+          $sources = @(
+            "\\${env:HOST1}\c$",
+            "\\${env:HOST2}\c$"
+          )
+
+          foreach ($src in $sources) {
+            Write-Host "Scanning $src ..."
+            Get-ChildItem -Path $src -Recurse -Filter "$($env:FILE_PREFIX)*.json" -ErrorAction SilentlyContinue |
+              Where-Object { ( $_.LastWriteTime -ge $start -and $_.LastWriteTime -le $end ) -or ( $_.CreationTime -ge $start -and $_.CreationTime -le $end ) } |
+              ForEach-Object {
+                $target = Join-Path $dest $_.Name
+                Write-Host "Copying $($_.FullName) -> $target"
+                Copy-Item -Path $_.FullName -Destination $target -Force
+              }
+          }
+        shell: pwsh
+
+      - name: Build coverage calculator (Maven)
+        working-directory: Script/AVCumulativeWorkflowCoverageCalculator
+        run: mvn -q -DskipTests clean package
+        shell: pwsh
+
+      - name: Run workflow coverage calculator
+        working-directory: Script/AVCumulativeWorkflowCoverageCalculator
+        run: |
+          $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
+          $jar = "target/AVCumulativeWorkflowCoverageCalculator-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
+          java -jar $jar --jsonPath "$logsPath" > "$logsPath\WorkflowCoverageLog.txt" 2>&1
+        shell: pwsh
+
+      - name: Persist today's data json to history folder
+        run: |
+          $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
+          $history = "C:\\WF_Coverage_History"
+          New-Item -ItemType Directory -Force -Path $history | Out-Null
+          Get-ChildItem -Path $logsPath -Filter "data*.json" | ForEach-Object {
+            Copy-Item -Path $_.FullName -Destination (Join-Path $history $_.Name) -Force
+          }
+        shell: pwsh
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir openpyxl
+        shell: pwsh
+
+      - name: Build historical Excel
+        run: |
+          $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
+          $history = "C:\\WF_Coverage_History"
+          python "${{ github.workspace }}\Script\build_workflow_coverage_excel.py" --logs "$history" --out "$logsPath\WorkflowCoverage.xlsx"
+        shell: pwsh
+
+      - name: Compose mail body from data*.json
+        id: compose_mail
+        run: |
+          $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
+          $latest = Get-ChildItem -Path $logsPath -Filter "data*.json" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+          if (-not $latest) { Write-Error "No data*.json found in $logsPath"; exit 1 }
+          $json = Get-Content $latest.FullName -Raw | ConvertFrom-Json
+          $order = @("FCMRInspectionMode","AVViewerApplication","CcaApplication","AvaApplication","FunctionalCardiacCTApplication")
+          $lines = @()
+          foreach ($key in $order) {
+            if ($json.PSObject.Properties.Name -contains $key) {
+              $inner = ($json.$key | ConvertFrom-Json)
+              $pct = $inner.'Percentage :'
+              if (-not $pct) { $pct = "0%" }
+              $lines += "$key - $pct"
+            }
+          }
+          $body = $lines -join "`r`n"
+          Set-Content -Path "$logsPath\ReportEmailBody.txt" -Value $body
+          "body=$body" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        shell: pwsh
+
+      - name: Send email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "Daily Workflow Coverage Report"
+          from: ${{ secrets.SMTP_FROM }}
+          to: "Reno.MA@philips.com"
+          secure: false
+          body: ${{ steps.compose_mail.outputs.body }}
+          attachments: |
+            workflow json logs/WorkflowCoverageLog.txt
+            workflow json logs/WorkflowCoverage.xlsx
