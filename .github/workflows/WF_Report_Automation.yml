@@ -123,18 +123,24 @@ jobs:
           "body=$body" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         shell: pwsh
 
-      - name: Send email
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_HOST }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
-          subject: "Daily Workflow Coverage Report"
-          from: ${{ secrets.SMTP_FROM }}
-          to: "Reno.MA@philips.com"
-          secure: false
-          body: ${{ steps.compose_mail.outputs.body }}
-          attachments: |
-            workflow json logs/WorkflowCoverageLog.txt
-            workflow json logs/WorkflowCoverage.xlsx
+      - name: Send email via Outlook (requires Outlook profile on runner)
+        shell: powershell
+        env:
+          EMAIL_BODY: ${{ steps.compose_mail.outputs.body }}
+        run: |
+          $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
+          $to = "Reno.MA@philips.com"
+          $subject = "Daily Workflow Coverage Report"
+
+          $attachments = @(
+            Join-Path $logsPath 'WorkflowCoverageLog.txt'
+            Join-Path $logsPath 'WorkflowCoverage.xlsx'
+          ) | Where-Object { Test-Path $_ }
+
+          $ol = New-Object -ComObject Outlook.Application
+          $mail = $ol.CreateItem(0)
+          $mail.To = $to
+          $mail.Subject = $subject
+          $mail.Body = $env:EMAIL_BODY
+          foreach ($att in $attachments) { $null = $mail.Attachments.Add($att) }
+          $mail.Send()
