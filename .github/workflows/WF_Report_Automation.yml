@@ -113,20 +113,20 @@ jobs:
           python "${{ github.workspace }}\Script\build_workflow_coverage_excel.py" --logs "$history" --out "$logsPath\WorkflowCoverage.xlsx"
         shell: pwsh
 
-      - name: Publish reports to network share
+      - name: Publish reports locally on runner
         shell: pwsh
-        env:
-          SHARE_PATH: "\\\\INGBTCPIC5NBI53\\WorkflowCoverageReportDocs"
         run: |
           $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
-          $share = $env:SHARE_PATH
+          $base = "C:\Users\320296553\Documents\WorkflowCoverageReport"
           $dateFolder = Get-Date -Format 'yyyy-MM-dd'
-          $dest = Join-Path $share $dateFolder
+          $dest = Join-Path $base $dateFolder
+          New-Item -ItemType Directory -Force -Path $base | Out-Null
           New-Item -ItemType Directory -Force -Path $dest | Out-Null
           $excel = Join-Path $logsPath 'WorkflowCoverage.xlsx'
           $txt = Join-Path $logsPath 'WorkflowCoverageLog.txt'
           if (Test-Path $excel) { Copy-Item -Path $excel -Destination $dest -Force }
           if (Test-Path $txt) { Copy-Item -Path $txt -Destination $dest -Force }
+
           Get-ChildItem -Path $logsPath -Filter 'data*.json' -ErrorAction SilentlyContinue | ForEach-Object {
             Copy-Item -Path $_.FullName -Destination $dest -Force
           }
