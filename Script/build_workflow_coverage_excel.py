@@ -40,7 +40,6 @@ def load_daily_data(logs_dir: str):
         try:
             d = datetime.strptime(date_token, "%Y-%m-%d").date()
         except Exception:
-            # Skip unrecognized names
             continue
         try:
             with open(path, "r", encoding="utf-8") as f:
@@ -68,14 +67,12 @@ def build_workbook(daily_map: dict, output_path: str):
     ws = wb.active
     ws.title = "Coverage"
 
-    # Styles
     header_fill = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
     header_font = Font(bold=True)
     center = Alignment(horizontal="center", vertical="center")
     thin = Side(style="thin", color="BFBFBF")
     border = Border(left=thin, right=thin, top=thin, bottom=thin)
 
-    # Header row
     ws.cell(row=1, column=1, value="Application").font = header_font
     ws.cell(row=1, column=1).fill = header_fill
     ws.cell(row=1, column=1).alignment = center
@@ -88,7 +85,6 @@ def build_workbook(daily_map: dict, output_path: str):
         c.alignment = center
         c.border = border
 
-    # Data rows
     for r, cat in enumerate(CATEGORIES, start=2):
         c = ws.cell(row=r, column=1, value=cat)
         c.font = Font(bold=True)
@@ -101,12 +97,10 @@ def build_workbook(daily_map: dict, output_path: str):
             cell.alignment = center
             cell.border = border
 
-    # Column widths
     ws.column_dimensions[get_column_letter(1)].width = 34
     for col in range(2, len(dates) + 2):
         ws.column_dimensions[get_column_letter(col)].width = 10
 
-    # Freeze panes below header and right of first column
     ws.freeze_panes = "B2"
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -121,7 +115,6 @@ def main():
 
     daily = load_daily_data(args.logs)
     if not daily:
-        # Create an empty workbook with just headers to avoid failing the job
         build_workbook({}, args.out)
         return
 
