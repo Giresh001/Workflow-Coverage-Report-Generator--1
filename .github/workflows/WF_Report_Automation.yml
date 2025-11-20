@@ -98,15 +98,12 @@ jobs:
           }
         shell: pwsh
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
       - name: Install Python dependencies
         run: |
+          python --version
+          python -m pip --version
           python -m pip install --upgrade pip
-          pip install --no-cache-dir openpyxl
+          python -m pip install --no-cache-dir openpyxl
         shell: pwsh
 
       - name: Build historical Excel
