@@ -59,16 +59,32 @@ jobs:
           }
         shell: pwsh
 
+      - name: Debug workspace structure
+        run: |
+          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
+          Get-ChildItem -Path $env:GITHUB_WORKSPACE
+          Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'WorkflowCoverageCalculator') -ErrorAction SilentlyContinue
+          Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'WorkflowCoverageCalculator/AVCumulativeWorkflowCoverageCalculator') -ErrorAction SilentlyContinue
+        shell: pwsh
+
       - name: Build coverage calculator (Maven)
-        working-directory: Script/AVCumulativeWorkflowCoverageCalculator
-        run: mvn -q -DskipTests clean package
+        run: |
+          $pom = Join-Path $env:GITHUB_WORKSPACE 'WorkflowCoverageCalculator\AVCumulativeWorkflowCoverageCalculator\pom.xml'
+          if (Test-Path $pom) {
+            mvn -q -DskipTests -f $pom clean package
+          } else {
+            Write-Host "pom.xml not found at $pom. Skipping Maven build and using prebuilt jar if present."
+          }
         shell: pwsh
 
       - name: Run workflow coverage calculator
-        working-directory: Script/AVCumulativeWorkflowCoverageCalculator
         run: |
-          $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
-          $jar = "target/AVCumulativeWorkflowCoverageCalculator-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
+          $logsPath = Join-Path $env:GITHUB_WORKSPACE 'workflow json logs'
+          $buildJar = Join-Path $env:GITHUB_WORKSPACE 'WorkflowCoverageCalculator\AVCumulativeWorkflowCoverageCalculator\target\AVCumulativeWorkflowCoverageCalculator-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
+          $fallbackJar = Join-Path $env:GITHUB_WORKSPACE 'WorkflowCoverageCalculator\AVCumulativeWorkflowCoverageCalculator-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
+          if (Test-Path $buildJar) { $jar = $buildJar }
+          elseif (Test-Path $fallbackJar) { $jar = $fallbackJar }
+          else { Write-Error "Jar not found at $buildJar or $fallbackJar"; exit 1 }
           java -jar $jar --jsonPath "$logsPath" > "$logsPath\WorkflowCoverageLog.txt" 2>&1
         shell: pwsh
 
