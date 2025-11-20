@@ -113,22 +113,20 @@ jobs:
           python "${{ github.workspace }}\Script\build_workflow_coverage_excel.py" --logs "$history" --out "$logsPath\WorkflowCoverage.xlsx"
         shell: pwsh
 
-      - name: Send email via Outlook (requires Outlook profile on runner)
-        shell: powershell
+      - name: Publish reports to network share
+        shell: pwsh
+        env:
+          SHARE_PATH: "\\\\INGBTCPIC5NBI53\\WorkflowCoverageReportDocs"
         run: |
           $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
-          $to = "Reno.MA@philips.com"
-          $subject = "Daily Workflow Coverage Report"
-
-          $attachments = @(
-            Join-Path $logsPath 'WorkflowCoverageLog.txt'
-            Join-Path $logsPath 'WorkflowCoverage.xlsx'
-          ) | Where-Object { Test-Path $_ }
-
-          $ol = New-Object -ComObject Outlook.Application
-          $mail = $ol.CreateItem(0)
-          $mail.To = $to
-          $mail.Subject = $subject
-          $mail.Body = ""
-          foreach ($att in $attachments) { $null = $mail.Attachments.Add($att) }
-          $mail.Send()
+          $share = $env:SHARE_PATH
+          $dateFolder = Get-Date -Format 'yyyy-MM-dd'
+          $dest = Join-Path $share $dateFolder
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          $excel = Join-Path $logsPath 'WorkflowCoverage.xlsx'
+          $txt = Join-Path $logsPath 'WorkflowCoverageLog.txt'
+          if (Test-Path $excel) { Copy-Item -Path $excel -Destination $dest -Force }
+          if (Test-Path $txt) { Copy-Item -Path $txt -Destination $dest -Force }
+          Get-ChildItem -Path $logsPath -Filter 'data*.json' -ErrorAction SilentlyContinue | ForEach-Object {
+            Copy-Item -Path $_.FullName -Destination $dest -Force
+          }
