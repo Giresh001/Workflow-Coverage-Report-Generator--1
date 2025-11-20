@@ -113,33 +113,8 @@ jobs:
           python "${{ github.workspace }}\Script\build_workflow_coverage_excel.py" --logs "$history" --out "$logsPath\WorkflowCoverage.xlsx"
         shell: pwsh
 
-      - name: Compose mail body from data*.json
-        id: compose_mail
-        run: |
-          $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
-          $latest = Get-ChildItem -Path $logsPath -Filter "data*.json" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-
-          if (-not $latest) { Write-Error "No data*.json found in $logsPath"; exit 1 }
-          $json = Get-Content $latest.FullName -Raw | ConvertFrom-Json
-          $order = @("FCMRInspectionMode","AVViewerApplication","CcaApplication","AvaApplication","FunctionalCardiacCTApplication")
-          $lines = @()
-          foreach ($key in $order) {
-            if ($json.PSObject.Properties.Name -contains $key) {
-              $inner = ($json.$key | ConvertFrom-Json)
-              $pct = $inner.'Percentage :'
-              if (-not $pct) { $pct = "0%" }
-              $lines += "$key - $pct"
-            }
-          }
-          $body = $lines -join "`r`n"
-          Set-Content -Path "$logsPath\ReportEmailBody.txt" -Value $body
-          "body=$body" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-        shell: pwsh
-
       - name: Send email via Outlook (requires Outlook profile on runner)
         shell: powershell
-        env:
-          EMAIL_BODY: ${{ steps.compose_mail.outputs.body }}
         run: |
           $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
           $to = "Reno.MA@philips.com"
@@ -154,6 +129,6 @@ jobs:
           $mail = $ol.CreateItem(0)
           $mail.To = $to
           $mail.Subject = $subject
-          $mail.Body = $env:EMAIL_BODY
+          $mail.Body = ""
           foreach ($att in $attachments) { $null = $mail.Attachments.Add($att) }
           $mail.Send()
