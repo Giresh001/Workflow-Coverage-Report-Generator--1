@@ -3,7 +3,7 @@ name: Workflow Coverage Report
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 11 * * *'
+    - cron: '00 11 * * *'
 
 jobs:
   wf-coverage:
