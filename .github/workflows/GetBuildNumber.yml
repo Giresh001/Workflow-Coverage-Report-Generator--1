@@ -1,0 +1,34 @@
+name: Get Build Number
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 4 * * *'
+
+jobs:
+  get-build-number:
+    runs-on: self-hosted
+    steps:
+      - name: Prepare output folder
+        run: |
+          New-Item -ItemType Directory -Force -Path 'C:\UiPathTestAutomation\Output' | Out-Null
+        shell: pwsh
+
+      - name: Map remote admin share
+        run: |
+          net use "\\${{ secrets.Build_Server_IP }}\c$" /user:${{ secrets.Build_Server_User }} ${{ secrets.Build_Server_Pass }} /persistent:no
+        shell: pwsh
+
+      - name: Copy AVAppsSuiteBuildVersion.json via robocopy
+        run: |
+          $src = "\\${{ secrets.Build_Server_IP }}\c$\Portalpms\Support"
+          $dst = "C:\UiPathTestAutomation\Output"
+          robocopy $src $dst AVAppsSuiteBuildVersion.json /R:2 /W:2 /NP /NFL /NDL
+          if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE } else { exit 0 }
+        shell: pwsh
+
+      - name: Verify copied file
+        run: |
+          Get-ChildItem -Path 'C:\UiPathTestAutomation\Output' -Filter 'AVAppsSuiteBuildVersion.json' | Format-List FullName,Length,LastWriteTime
+        shell: pwsh
+
