@@ -6,6 +6,13 @@
     "FCMRInspectionMode - AfterContourDeletedArgs",
     "QFlowInspectionMode - SingleClick",
     "FCMRInspectionMode - AfterContourDeletedArgs",
-    "FCMRInspectionMode - Save3DBatchPopup"
+    "FCMRInspectionMode - Save3DBatchPopup",
+    "AVViewerApplication - CArmAnglePresetComboValueChanged",
+    "AVViewerApplication - CArmAnglesChanged",
+    "AVViewerApplication - CArmAnglesRemoved",
+    "AVViewerApplication - CArmOrientationAnglesAnnotationActivated",
+    "AVViewerApplication - CArmSyncAnnotationChanged",
+    "AVViewerApplication - EulerAngleOrientationAnnotationActivated",
+    "AVViewerApplication - Save3DBatchPopup"
   ]
 }
