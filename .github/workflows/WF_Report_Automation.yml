@@ -85,7 +85,8 @@ jobs:
           if (Test-Path $buildJar) { $jar = $buildJar }
           elseif (Test-Path $fallbackJar) { $jar = $fallbackJar }
           else { Write-Error "Jar not found at $buildJar or $fallbackJar"; exit 1 }
-          java -jar $jar --jsonPath "$logsPath" > "$logsPath\WorkflowCoverageLog.txt" 2>&1
+          $excludeJson = Join-Path $env:GITHUB_WORKSPACE 'Exclude.json'
+          java -jar $jar --jsonPath "$logsPath" --rmvListJsonPath "$excludeJson" > "$logsPath\WorkflowCoverageLog.txt" 2>&1
         shell: pwsh
 
       - name: Persist today's data json to history folder

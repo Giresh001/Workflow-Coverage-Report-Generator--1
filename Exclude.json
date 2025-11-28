@@ -1,0 +1,11 @@
+{
+  "WorkflowsList": [
+    "TemporalApplication - Save3DBatchPopup",
+    "QFlowInspectionMode - Save3DBatchPopup",
+    "SpatialApplication - Save3DBatchPopup",
+    "FCMRInspectionMode - AfterContourDeletedArgs",
+    "QFlowInspectionMode - SingleClick",
+    "FCMRInspectionMode - AfterContourDeletedArgs",
+    "FCMRInspectionMode - Save3DBatchPopup"
+  ]
+}

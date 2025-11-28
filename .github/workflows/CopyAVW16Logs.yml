@@ -1,0 +1,118 @@
+name: Copy AVW16 Logs
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 3 * * *'
+
+jobs:
+  copy-logs:
+    runs-on: self-hosted
+    steps:
+      - name: Prepare target root and compute IST window
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path 'C:\TestExecutionLogs\LOGS' | Out-Null
+          $istTz = [System.TimeZoneInfo]::FindSystemTimeZoneById('India Standard Time')
+          $nowUtc = [DateTime]::UtcNow
+          $nowIst = [System.TimeZoneInfo]::ConvertTimeFromUtc($nowUtc, $istTz)
+          $startIst = $nowIst.Date.AddDays(-1).AddHours(9).AddMinutes(30)
+          $endIst = $nowIst.Date.AddHours(9)
+          $startUtc = [System.TimeZoneInfo]::ConvertTimeToUtc($startIst, $istTz)
+          $endUtc = [System.TimeZoneInfo]::ConvertTimeToUtc($endIst, $istTz)
+          "START_UTC=$($startUtc.ToString('o'))" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "END_UTC=$($endUtc.ToString('o'))" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "IST_DATE=$($nowIst.ToString('yyyy-MM-dd'))" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Copy logs from C4
+        shell: pwsh
+        env:
+          CLIENT_IP: ${{ secrets.C4_Client_IP }}
+          CLIENT_USER: ${{ secrets.AVW16_Client_User }}
+          CLIENT_PASS: ${{ secrets.AVW16_Client_Pass }}
+          CLIENT_NAME: C4
+        run: |
+          $srcRoot = "\\$env:CLIENT_IP\c$\UiPathTestAutomation\TestExecutionResults"
+          $dstRoot = "C:\TestExecutionLogs\LOGS\$env:IST_DATE\$env:CLIENT_NAME"
+          New-Item -ItemType Directory -Force -Path $dstRoot | Out-Null
+          $null = & net use "\\$env:CLIENT_IP\c$" /user:$env:CLIENT_USER $env:CLIENT_PASS /persistent:no
+          try {
+            $startUtc = [DateTime]::Parse($env:START_UTC)
+            $endUtc = [DateTime]::Parse($env:END_UTC)
+            $files = Get-ChildItem -Path $srcRoot -Filter *.json -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { $_.LastWriteTimeUtc -ge $startUtc -and $_.LastWriteTimeUtc -lt $endUtc }
+            if (-not $files) { Write-Host "No matching files"; return }
+            $err = 0
+            foreach ($file in $files) {
+              $relPath = $file.FullName.Substring($srcRoot.Length).TrimStart('\\')
+              $dstDir = Join-Path $dstRoot (Split-Path -Path $relPath -Parent)
+              New-Item -ItemType Directory -Force -Path $dstDir | Out-Null
+              robocopy (Split-Path -Path $file.FullName -Parent) $dstDir $file.Name /R:2 /W:2 /NP /NFL /NDL
+              if ($LASTEXITCODE -ge 8) { $err = $LASTEXITCODE; break }
+            }
+            if ($err -ge 8) { exit $err } else { exit 0 }
+          } finally {
+            & net use "\\$env:CLIENT_IP\c$" /delete /y | Out-Null
+          }
+
+      - name: Copy logs from C7
+        shell: pwsh
+        env:
+          CLIENT_IP: ${{ secrets.C7_Client_IP }}
+          CLIENT_USER: ${{ secrets.AVW16_Client_User }}
+          CLIENT_PASS: ${{ secrets.AVW16_Client_Pass }}
+          CLIENT_NAME: C7
+        run: |
+          $srcRoot = "\\$env:CLIENT_IP\c$\UiPathTestAutomation\TestExecutionResults"
+          $dstRoot = "C:\TestExecutionLogs\LOGS\$env:IST_DATE\$env:CLIENT_NAME"
+          New-Item -ItemType Directory -Force -Path $dstRoot | Out-Null
+          $null = & net use "\\$env:CLIENT_IP\c$" /user:$env:CLIENT_USER $env:CLIENT_PASS /persistent:no
+          try {
+            $startUtc = [DateTime]::Parse($env:START_UTC)
+            $endUtc = [DateTime]::Parse($env:END_UTC)
+            $files = Get-ChildItem -Path $srcRoot -Filter *.json -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { $_.LastWriteTimeUtc -ge $startUtc -and $_.LastWriteTimeUtc -lt $endUtc }
+            if (-not $files) { Write-Host "No matching files"; return }
+            $err = 0
+            foreach ($file in $files) {
+              $relPath = $file.FullName.Substring($srcRoot.Length).TrimStart('\\')
+              $dstDir = Join-Path $dstRoot (Split-Path -Path $relPath -Parent)
+              New-Item -ItemType Directory -Force -Path $dstDir | Out-Null
+              robocopy (Split-Path -Path $file.FullName -Parent) $dstDir $file.Name /R:2 /W:2 /NP /NFL /NDL
+              if ($LASTEXITCODE -ge 8) { $err = $LASTEXITCODE; break }
+            }
+            if ($err -ge 8) { exit $err } else { exit 0 }
+          } finally {
+            & net use "\\$env:CLIENT_IP\c$" /delete /y | Out-Null
+          }
+
+      - name: Copy logs from C11
+        shell: pwsh
+        env:
+          CLIENT_IP: ${{ secrets.C11_Client_IP }}
+          CLIENT_USER: ${{ secrets.AVW16_Client_User }}
+          CLIENT_PASS: ${{ secrets.AVW16_Client_Pass }}
+          CLIENT_NAME: C11
+        run: |
+          $srcRoot = "\\$env:CLIENT_IP\c$\UiPathTestAutomation\TestExecutionResults"
+          $dstRoot = "C:\TestExecutionLogs\LOGS\$env:IST_DATE\$env:CLIENT_NAME"
+          New-Item -ItemType Directory -Force -Path $dstRoot | Out-Null
+          $null = & net use "\\$env:CLIENT_IP\c$" /user:$env:CLIENT_USER $env:CLIENT_PASS /persistent:no
+          try {
+            $startUtc = [DateTime]::Parse($env:START_UTC)
+            $endUtc = [DateTime]::Parse($env:END_UTC)
+            $files = Get-ChildItem -Path $srcRoot -Filter *.json -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { $_.LastWriteTimeUtc -ge $startUtc -and $_.LastWriteTimeUtc -lt $endUtc }
+            if (-not $files) { Write-Host "No matching files"; return }
+            $err = 0
+            foreach ($file in $files) {
+              $relPath = $file.FullName.Substring($srcRoot.Length).TrimStart('\\')
+              $dstDir = Join-Path $dstRoot (Split-Path -Path $relPath -Parent)
+              New-Item -ItemType Directory -Force -Path $dstDir | Out-Null
+              robocopy (Split-Path -Path $file.FullName -Parent) $dstDir $file.Name /R:2 /W:2 /NP /NFL /NDL
+              if ($LASTEXITCODE -ge 8) { $err = $LASTEXITCODE; break }
+            }
+            if ($err -ge 8) { exit $err } else { exit 0 }
+          } finally {
+            & net use "\\$env:CLIENT_IP\c$" /delete /y | Out-Null
+          }
