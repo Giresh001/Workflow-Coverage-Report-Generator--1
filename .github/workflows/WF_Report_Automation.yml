@@ -35,7 +35,7 @@ jobs:
         run: |
           net use "\\${env:HOST1}\c$" /user:${{ secrets.WF_HOST_USER }} ${{ secrets.WF_HOST_PASSWORD }} /persistent:no
           net use "\\${env:HOST2}\c$" /user:${{ secrets.WF_HOST_USER }} ${{ secrets.WF_HOST_PASSWORD }} /persistent:no
-          net use "\\${env:HOST3}\c$" /user:${{ secrets.WF_HOST_209_USER }} ${{ secrets.WF_HOST_209_PASS }} /persistent:no
+          net use "\\${env:HOST3}\c$" /user:${{ secrets.WF_HOST_USER }} ${{ secrets.WF_HOST_PASSWORD }} /persistent:no
         shell: pwsh
 
       - name: Copy JSON logs from three machines (name + fixed date range)
