@@ -12,6 +12,7 @@ jobs:
     env:
       HOST1: ${{ secrets.WF_HOST1 }}
       HOST2: ${{ secrets.WF_HOST2 }}
+      HOST3: ${{ secrets.WF_HOST3 }}
       FILE_PREFIX: WorkflowsCoverageRecords
       START_DATE: '2025-09-01'
 
@@ -34,9 +35,10 @@ jobs:
         run: |
           net use "\\${env:HOST1}\c$" /user:${{ secrets.WF_HOST_USER }} ${{ secrets.WF_HOST_PASSWORD }} /persistent:no
           net use "\\${env:HOST2}\c$" /user:${{ secrets.WF_HOST_USER }} ${{ secrets.WF_HOST_PASSWORD }} /persistent:no
+          net use "\\${env:HOST3}\c$" /user:${{ secrets.WF_HOST_209_USER }} ${{ secrets.WF_HOST_209_PASS }} /persistent:no
         shell: pwsh
 
-      - name: Copy JSON logs from both machines (name + fixed date range)
+      - name: Copy JSON logs from three machines (name + fixed date range)
         run: |
           $dest = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
           $start = [datetime]::Parse($env:START_DATE)
@@ -44,7 +46,8 @@ jobs:
 
           $sources = @(
             "\\${env:HOST1}\c$",
-            "\\${env:HOST2}\c$"
+            "\\${env:HOST2}\c$",
+            "\\${env:HOST3}\c$"
           )
 
           foreach ($src in $sources) {
