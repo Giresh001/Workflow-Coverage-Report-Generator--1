@@ -147,7 +147,7 @@ jobs:
           $from = "Reno.MA@philips.com"
           $to = "Reno.MA@philips.com"
           $subject = "Workflow Coverage Report"
-          $body = "Hi,\n\nPlease find attached the latest Workflow Coverage Report.\n\nRegards,\nCI/CD Pipeline"
+          $body = "Hi Team,`n`nPlease find the latest Workflow Coverage Report.`n`nRegards,`nReno"
 
           $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
 
