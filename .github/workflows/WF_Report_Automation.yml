@@ -145,7 +145,18 @@ jobs:
           $password = "${{ secrets.SMTP_PASSWORD }}"
 
           $from = "Reno.MA@philips.com"
-          $to = "Reno.MA@philips.com"
+          $to = @(
+            "Venugopal.AS@philips.com",
+            "vidhya.mohanrajagopal@philips.com",
+            "nivedita.patil@philips.com",
+            "partner.Deepanraj.R@philips.com",
+            "Harsha.Vaidyanathan@philips.com",
+            "AmithKumar.VittalGovinda@philips.com"
+          )
+          $cc = @(
+            "krishnamanjari.polimera@philips.com",
+            "Reno.MA@philips.com"
+          )
           $subject = "Workflow Coverage Report"
           $body = "Hi Team,`n`nPlease find the latest Workflow Coverage Report.`n`nRegards,`nReno"
 
@@ -163,6 +174,7 @@ jobs:
           Send-MailMessage `
             -From $from `
             -To $to `
+            -Cc $cc `
             -Subject $subject `
             -Body $body `
             -SmtpServer $smtpServer `

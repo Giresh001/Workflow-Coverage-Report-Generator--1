@@ -2,8 +2,8 @@ name: Copy AVW16 Logs
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '30 3 * * *'
+  # schedule:
+  #   - cron: '30 3 * * *'
 
 jobs:
   copy-logs:
