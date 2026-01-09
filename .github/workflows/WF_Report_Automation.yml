@@ -135,50 +135,50 @@ jobs:
             Copy-Item -Path $_.FullName -Destination $dest -Force
           }
 
-      - name: Send Workflow Coverage Report via Email
-        shell: pwsh
-        run: |
-          $smtpServer = "smtprelay-asp1.philips.com"
-          $smtpPort = 587
+      # - name: Send Workflow Coverage Report via Email
+      #   shell: pwsh
+      #   run: |
+      #     $smtpServer = "smtprelay-asp1.philips.com"
+      #     $smtpPort = 587
 
-          $username = "${{ secrets.SMTP_USER }}"
-          $password = "${{ secrets.SMTP_PASSWORD }}"
+      #     $username = "${{ secrets.SMTP_USER }}"
+      #     $password = "${{ secrets.SMTP_PASSWORD }}"
 
-          $from = "Reno.MA@philips.com"
-          $to = @(
-            "Venugopal.AS@philips.com",
-            "vidhya.mohanrajagopal@philips.com",
-            "nivedita.patil@philips.com",
-            "partner.Deepanraj.R@philips.com",
-            "Harsha.Vaidyanathan@philips.com",
-            "AmithKumar.VittalGovinda@philips.com"
-          )
-          $cc = @(
-            "krishnamanjari.polimera@philips.com",
-            "Reno.MA@philips.com"
-          )
-          $subject = "Workflow Coverage Report"
-          $body = "Hi Team,`n`nPlease find the latest Workflow Coverage Report.`n`nRegards,`nReno"
+      #     $from = "Reno.MA@philips.com"
+      #     $to = @(
+      #       "Venugopal.AS@philips.com",
+      #       "vidhya.mohanrajagopal@philips.com",
+      #       "nivedita.patil@philips.com",
+      #       "partner.Deepanraj.R@philips.com",
+      #       "Harsha.Vaidyanathan@philips.com",
+      #       "AmithKumar.VittalGovinda@philips.com"
+      #     )
+      #     $cc = @(
+      #       "krishnamanjari.polimera@philips.com",
+      #       "Reno.MA@philips.com"
+      #     )
+      #     $subject = "Workflow Coverage Report"
+      #     $body = "Hi Team,`n`nPlease find the latest Workflow Coverage Report.`n`nRegards,`nReno"
 
-          $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
+      #     $logsPath = Join-Path $env:GITHUB_WORKSPACE "workflow json logs"
 
-          $excel = Join-Path $logsPath "WorkflowCoverage.xlsx"
-          $txt   = Join-Path $logsPath "WorkflowCoverageLog.txt"
+      #     $excel = Join-Path $logsPath "WorkflowCoverage.xlsx"
+      #     $txt   = Join-Path $logsPath "WorkflowCoverageLog.txt"
 
-          if (!(Test-Path $excel)) { Write-Error "Excel report not found"; exit 1 }
-          if (!(Test-Path $txt))   { Write-Error "Text report not found"; exit 1 }
+      #     if (!(Test-Path $excel)) { Write-Error "Excel report not found"; exit 1 }
+      #     if (!(Test-Path $txt))   { Write-Error "Text report not found"; exit 1 }
 
-          $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
-          $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
+      #     $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+      #     $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 
-          Send-MailMessage `
-            -From $from `
-            -To $to `
-            -Cc $cc `
-            -Subject $subject `
-            -Body $body `
-            -SmtpServer $smtpServer `
-            -Port $smtpPort `
-            -UseSsl `
-            -Credential $credential `
-            -Attachments $excel, $txt
+      #     Send-MailMessage `
+      #       -From $from `
+      #       -To $to `
+      #       -Cc $cc `
+      #       -Subject $subject `
+      #       -Body $body `
+      #       -SmtpServer $smtpServer `
+      #       -Port $smtpPort `
+      #       -UseSsl `
+      #       -Credential $credential `
+      #       -Attachments $excel, $txt
