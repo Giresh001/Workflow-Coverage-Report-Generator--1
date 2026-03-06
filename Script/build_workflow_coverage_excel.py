@@ -28,10 +28,6 @@ def parse_percentage(pct_str: str) -> float:
 
 
 def load_daily_data(logs_dir: str):
-    """
-    Scan logs_dir for files named dataYYYY-MM-DD.json and return
-    a dict: { date (datetime.date): {category: percent_float} }
-    """
     daily = {}
     pattern = os.path.join(logs_dir, "data*.json")
     for path in glob.glob(pattern):
