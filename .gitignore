@@ -1,0 +1,185 @@
+# ========================================
+# Workflow Coverage Calculator - .gitignore
+# ========================================
+
+# ========================================
+# Credentials & Sensitive Data
+# ========================================
+.env
+.env.local
+*.key
+*.pem
+credentials.txt
+
+# ========================================
+# Temporary Workflow Data
+# ========================================
+workflow json logs/
+WorkflowCoverageLog.txt
+data*.json
+
+# ========================================
+# Java/Maven
+# ========================================
+target/
+bin/
+*.class
+*.jar
+!WorkflowCoverageCalculator/AVCumulativeWorkflowCoverageCalculator-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ========================================
+# Python
+# ========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ========================================
+# IDEs and Editors
+# ========================================
+# Eclipse
+.classpath
+.project
+.settings/
+*.launch
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# ========================================
+# Operating System Files
+# ========================================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.directory
+.Trash-*
+.nfs*
+
+# ========================================
+# Logs and Databases
+# ========================================
+*.log
+*.sql
+*.sqlite
+*.db
+
+# ========================================
+# Backup and Temporary Files
+# ========================================
+*.bak
+*.swp
+*.swo
+*~
+*.tmp
+*.temp
+.cache/
+
+# ========================================
+# Project-Specific
+# ========================================
+# Keep the prebuilt JAR but ignore other JARs
+*.jar
+!WorkflowCoverageCalculator/AVCumulativeWorkflowCoverageCalculator-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+
+# Ignore output files but keep examples
+WorkflowCoverageLog.txt
+data*.json
+
+# Ignore copied JSON files from test machines
+WorkflowsCoverageRecords*.json
